@@ -13,15 +13,19 @@ app.options('*', cors());
 const api = process.env.API_URL;
 const CONNECTION_STRING = process.env.CONNECTION_STRING;
 
-// IMPORTER ROUTERS
+// IMPORT ROUTERS
 const PRODUCTS_ROUTER = require('./routes/productsRouter');
 const USER_ROUTER = require('./routes/usersRouter');
 const ORDER_ROUTER = require('./routes/ordersRouter');
 const CATEGORY_ROUTER = require('./routes/categoryRouter');
+const authJwt = require('./helpers/jwt');
+const errorHandler = require('./helpers/error-handler');
 
 // MiddleWare
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
+app.use(authJwt());
+app.use(errorHandler); // Use errorHandler middleware
 
 // ROUTERS
 app.use(`${api}/products`, PRODUCTS_ROUTER);
