@@ -9,6 +9,7 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    index: true,
   },
   passwordHash: {
     type: String,
@@ -21,6 +22,7 @@ const userSchema = mongoose.Schema({
   isAdmin: {
     type: Boolean,
     default: false,
+    index: true,
   },
   street: {
     type: String,
