@@ -1,0 +1,36 @@
+{
+  "categories": [
+    {
+      "notes": "floral"
+    },
+    {
+      "notes": "oriental"
+    },
+    {
+      "notes": "woody"
+    },
+    {
+      "notes": "fresh"
+    }
+  ],
+  "products": [
+    {
+      "name": "Blue De Chanel",
+      "description": "Best Cologne in the game",
+      "richDescription": "BLEU DE CHANEL exudes accomplishment through a timeless and unexpected scent. This aromatic-woody fragrance with a captivating trail embodies freedom with its strength and elegance, just like the man who wears it. The scent is available in a complete line of shaving and grooming essentials.",
+      "image": "",
+      "images": [],
+      "brand": "Chanel",
+      "price": "24.99",
+      "category": "woody",
+      "countInStock": "12",
+      "rating": "4.5",
+      "numReviews": "15",
+      "isFeatured": true,
+      "gender": "male",
+      "season": "winter",
+      "concentration": "EDP",
+      "notes": "Night-out"
+    }
+  ]
+}

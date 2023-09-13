@@ -54,6 +54,40 @@ const productSchema = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  gender: {
+    type: String,
+    required: true,
+  },
+  season: {
+    type: String,
+    required: true,
+  },
+  concentration: {
+    type: String,
+    required: true,
+  },
+  vibe: {
+    type: String,
+    required: true,
+  },
+  topNotes: [
+    {
+      type: String,
+      required: true,
+    },
+  ],
+  middleNotes: [
+    {
+      type: String,
+      required: true,
+    },
+  ],
+  baseNotes: [
+    {
+      type: String,
+      required: true,
+    },
+  ],
   dateCreated: {
     type: Date,
     default: Date.now,

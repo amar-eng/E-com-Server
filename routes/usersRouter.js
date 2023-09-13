@@ -3,52 +3,84 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const verifyToken = require('../middleware/auth');
 
+router.use(cookieParser());
+
+// Get a list of users (admin access required)
 router.get('/', async (req, res) => {
-  const userList = await User.find().select('-passwordHash');
-
-  if (!userList) {
-    res.status(500).json({ success: false });
-  }
-  res.send(userList);
-});
-
-router.get('/:id', async (req, res) => {
-  const user = await User.findById(req.params.id).select('-passwordHash');
-
-  if (!user) {
-    res.status(500).json({
-      message: 'The user with that ID doesnt exist',
-    });
-  }
-  res.status(200).send(user);
-});
-
-router.post('/', async (req, res) => {
   try {
-    const user = new User({
-      name: req.body.name,
-      email: req.body.email,
-      passwordHash: bcrypt.hashSync(req.body.password, 10),
-      phoneNumber: req.body.phoneNumber,
-      isAdmin: req.body.isAdmin,
-      street: req.body.street,
-      apartment: req.body.apartment,
-      postalCode: req.body.postalCode,
-      city: req.body.city,
-      state: req.body.state,
-      country: req.body.country,
-    });
-    const userCategory = await user.save();
-    res.status(201).json(userCategory);
-  } catch (err) {
-    res.status(500).json({
-      error: err,
-      success: false,
-    });
+    const userList = await User.find().select('-passwordHash');
+    res.status(200).json(userList);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
+// Get user by ID (admin access required)
+router.get('/:id', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Register a new user
+router.post('/register', async (req, res) => {
+  const { name, email, password, isAdmin } = req.body;
+
+  try {
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
+    const user = new User({
+      name,
+      email,
+      passwordHash: bcrypt.hashSync(password, 10),
+      isAdmin,
+    });
+
+    const savedUser = await user.save();
+
+    if (!savedUser) {
+      return res.status(401).json({ message: 'The user cannot be created' });
+    }
+
+    // Generate a token for the newly registered user
+    const secret = process.env.SECRET; // Define your secret key here
+    const token = jwt.sign(
+      {
+        userId: savedUser.id,
+        isAdmin: savedUser.isAdmin,
+      },
+      secret, // Use the secret key here
+      {
+        expiresIn: '3h',
+      }
+    );
+
+    // Set the token as a cookie with a 3-hour expiration time
+    res.cookie('token', token, { httpOnly: true, maxAge: 3 * 60 * 60 * 1000 });
+
+    res.status(201).json({ user: savedUser.email, token }); // Include the token in the response
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// User login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -72,6 +104,12 @@ router.post('/login', async (req, res) => {
         }
       );
 
+      // Set the token as a cookie with a 3-hour expiration time
+      res.cookie('token', token, {
+        httpOnly: true,
+        maxAge: 3 * 60 * 60 * 1000,
+      });
+
       return res.status(200).json({ user: user.email, token });
     } else {
       return res.status(401).send('Incorrect password');
@@ -82,27 +120,44 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/register', async (req, res) => {
-  let user = new User({
-    name: req.body.name,
-    email: req.body.email,
-    passwordHash: bcrypt.hashSync(req.body.password, 10),
-    phoneNumber: req.body.phoneNumber,
-    isAdmin: req.body.isAdmin,
-    street: req.body.street,
-    apartment: req.body.apartment,
-    postalCode: req.body.postalCode,
-    city: req.body.city,
-    state: req.body.state,
-    country: req.body.country,
-  });
-  user = await user.save();
+// Update user data (user access required)
+router.put('/update', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId; // Extract user ID from the token
+    const updatedUserData = req.body; // This should contain the fields you want to update
 
-  if (!user) return res.status(401).send('the user cannot be created!');
+    // Find the user by ID (from the token) and update their information
+    const user = await User.findByIdAndUpdate(userId, updatedUserData, {
+      new: true, // Return the updated user data
+    });
 
-  res.send(user);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Optionally, you can generate a new JWT token if user information has changed
+
+    res.status(200).json({ message: 'User updated successfully', user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
+// Logout and clear the token cookie
+router.post('/logout', verifyToken, (req, res) => {
+  try {
+    // Clear the token cookie
+    res.clearCookie('token');
+
+    res.json({ message: 'Logged out successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get the count of users
 router.get('/get/count', async (req, res) => {
   try {
     const userCount = await User.countDocuments();
@@ -119,18 +174,19 @@ router.get('/get/count', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+// Delete a user (admin access required)
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const user = await User.findByIdAndRemove(req.params.id);
     if (user) {
       res.status(200).json({
         success: true,
-        message: 'user is deleted',
+        message: 'User is deleted',
       });
     } else {
       res.status(404).json({
         success: false,
-        message: 'user not found',
+        message: 'User not found',
       });
     }
   } catch (err) {

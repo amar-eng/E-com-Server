@@ -25,6 +25,7 @@ const errorHandler = require('./helpers/error-handler');
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
 app.use(authJwt());
+app.use('/public/uploads', express.static(__dirname + '/public/uploads'));
 app.use(errorHandler); // Use errorHandler middleware
 
 // ROUTERS
@@ -35,7 +36,7 @@ app.use(`${api}/categories`, CATEGORY_ROUTER);
 
 mongoose
   .connect(CONNECTION_STRING, {
-    dbName: 'e-shop',
+    dbName: 'aroma',
   })
   .then(() => {
     console.log('DB Connection is ready ... ');
@@ -44,7 +45,7 @@ mongoose
     console.log('error: Connection failed', error);
   });
 
-const SERVER_PORT = 5100;
+const SERVER_PORT = 5001;
 app.listen(SERVER_PORT, () => {
   console.log(`Server started on http://localhost:${SERVER_PORT}`);
 });
