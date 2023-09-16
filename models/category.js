@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const categorySchema = mongoose.Schema({
-  occasion: {
+  grade: {
     type: String,
     required: true,
   },

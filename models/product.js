@@ -92,6 +92,10 @@ const productSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  occasion: {
+    type: String,
+    required: true,
+  },
 });
 
 productSchema.virtual('id').get(function () {

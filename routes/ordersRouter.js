@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   const orderList = await Order.find()
-    .populate('user', 'name')
+    .populate('user', 'name email')
     .sort({ dateOrdered: -1 });
   if (!orderList) {
     res.status(500).json({ success: false });
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const order = await Order.findById(req.params.id)
-    .populate('user', 'name')
+    .populate('user', 'name email')
     .populate({
       path: 'orderItems',
       populate: { path: 'product', populate: 'category' },
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
     const orderItemsIds = Promise.all(
       req.body.orderItems.map(async (orderItem) => {
         let newOrderItem = new OrderItem({
-          quantity: orderItem.quantity,
+          qty: orderItem.qty,
           product: orderItem.product,
         });
 
@@ -52,11 +52,15 @@ router.post('/', async (req, res) => {
           'price'
         );
 
-        const totalPrice = orderItem.product.price * orderItem.quantity;
+        const totalPrice = orderItem.product.price * orderItem.qty;
         return totalPrice;
       })
     );
-    const totalPrice = totalPrices.reduce((a, b) => a + b, 0);
+    const itemTotalPrice = totalPrices.reduce((a, b) => a + b, 0);
+    const totalPrice =
+      itemTotalPrice +
+      parseFloat(req.body.shippingPrice) +
+      parseFloat(req.body.taxPrice);
 
     let order = new Order({
       orderItems: orderItemsIdsResolved,
@@ -67,9 +71,14 @@ router.post('/', async (req, res) => {
       apartment: req.body.apartment,
       state: req.body.state,
       country: req.body.country,
-      status: req.body.status,
+      isPaid: req.body.isPaid,
+      isDelivered: req.body.isDelivered,
       phoneNumber: req.body.phoneNumber,
       totalPrice: totalPrice,
+      shippingPrice: parseFloat(req.body.shippingPrice),
+      taxPrice: parseFloat(req.body.taxPrice),
+      itemsPrice: parseFloat(req.body.itemsPrice),
+      paymentMethod: req.body.paymentMethod,
       user: req.body.user,
     });
 

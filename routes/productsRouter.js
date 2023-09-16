@@ -114,6 +114,7 @@ router.post('/', uploadOptions.single('image'), async (req, res) => {
       topNotes: req.body.topNotes,
       middleNotes: req.body.middleNotes,
       baseNotes: req.body.baseNotes,
+      occasion: req.body.occasion,
     });
 
     const createdProduct = await product.save();
@@ -182,6 +183,7 @@ router.put('/:id', async (req, res) => {
       topNotes: req.body.topNotes,
       middleNotes: req.body.middleNotes,
       baseNotes: req.body.baseNotes,
+      occasion: req.body.occasion,
     },
     { new: true }
   );

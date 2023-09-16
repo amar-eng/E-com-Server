@@ -27,7 +27,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const category = new Category({
-      occasion: req.body.occasion,
+      grade: req.body.grade,
     });
     const createdCategory = await category.save();
     res.status(201).json(createdCategory);
@@ -45,7 +45,7 @@ router.put('/:id', async (req, res) => {
   const category = await Category.findByIdAndUpdate(
     req.params.id,
     {
-      occasion: req.body.occasion,
+      grade: req.body.grade,
     },
     { new: true }
   );

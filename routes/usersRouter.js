@@ -73,7 +73,9 @@ router.post('/register', async (req, res) => {
     // Set the token as a cookie with a 3-hour expiration time
     res.cookie('token', token, { httpOnly: true, maxAge: 3 * 60 * 60 * 1000 });
 
-    res.status(201).json({ user: savedUser.email, token }); // Include the token in the response
+    res
+      .status(201)
+      .json({ name: savedUser.name, user: savedUser.email, token }); // Include the token in the response
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -88,7 +90,7 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).send('User not found');
+      return res.status(404).send('Invalid email or password');
     }
 
     if (user && bcrypt.compareSync(password, user.passwordHash)) {
@@ -110,7 +112,13 @@ router.post('/login', async (req, res) => {
         maxAge: 3 * 60 * 60 * 1000,
       });
 
-      return res.status(200).json({ user: user.email, token });
+      return res.status(200).json({
+        user: user.email,
+        name: user.name,
+        id: user.id,
+        isAdmin: user.isAdmin,
+        token,
+      });
     } else {
       return res.status(401).send('Incorrect password');
     }
@@ -145,7 +153,7 @@ router.put('/update', verifyToken, async (req, res) => {
 });
 
 // Logout and clear the token cookie
-router.post('/logout', verifyToken, (req, res) => {
+router.post('/logout', (req, res) => {
   try {
     // Clear the token cookie
     res.clearCookie('token');
