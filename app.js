@@ -34,6 +34,12 @@ app.use(`${api}/users`, USER_ROUTER);
 app.use(`${api}/orders`, ORDER_ROUTER);
 app.use(`${api}/categories`, CATEGORY_ROUTER);
 
+app.get(`${api}/config/paypal`, (req, res) =>
+  res.send({
+    clientId: process.env.PAYPAL_CLIENT_ID,
+  })
+);
+
 mongoose
   .connect(CONNECTION_STRING, {
     dbName: 'aroma',

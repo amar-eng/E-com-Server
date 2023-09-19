@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const verifyToken = require('../middleware/auth');
+const asyncHandler = require('../middleware/asyncHandler');
 
 router.use(cookieParser());
 
@@ -19,14 +20,40 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get user by ID (admin access required)
-router.get('/:id', verifyToken, async (req, res) => {
+router.get('/profile', verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash');
+    const user = await User.findById(req.user.userId).select('-passwordHash');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update the user's profile (authenticated user)
+router.put('/profile', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const updatedUserData = req.body;
+
+    if (!userId || !updatedUserData) {
+      return res.status(400).json({ message: 'Invalid request data' });
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updatedUserData, {
+      new: true,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      user,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -75,7 +102,7 @@ router.post('/register', async (req, res) => {
 
     res
       .status(201)
-      .json({ name: savedUser.name, user: savedUser.email, token }); // Include the token in the response
+      .json({ name: savedUser.name, email: savedUser.email, token }); // Include the token in the response
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -113,7 +140,7 @@ router.post('/login', async (req, res) => {
       });
 
       return res.status(200).json({
-        user: user.email,
+        email: user.email,
         name: user.name,
         id: user.id,
         isAdmin: user.isAdmin,
@@ -125,30 +152,6 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).send('Internal Server Error');
-  }
-});
-
-// Update user data (user access required)
-router.put('/update', verifyToken, async (req, res) => {
-  try {
-    const userId = req.user.userId; // Extract user ID from the token
-    const updatedUserData = req.body; // This should contain the fields you want to update
-
-    // Find the user by ID (from the token) and update their information
-    const user = await User.findByIdAndUpdate(userId, updatedUserData, {
-      new: true, // Return the updated user data
-    });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Optionally, you can generate a new JWT token if user information has changed
-
-    res.status(200).json({ message: 'User updated successfully', user });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -179,6 +182,20 @@ router.get('/get/count', async (req, res) => {
     res.json({ userCount: userCount });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get user by ID (admin access required)
+router.get('/:id', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-passwordHash');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

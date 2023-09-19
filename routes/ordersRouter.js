@@ -176,4 +176,31 @@ router.get(`/get/userorders/:userid`, async (req, res) => {
   }
   res.send(userOrderList);
 });
+
+router.put('/:id/pay', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.isPaid = true;
+      order.paidAt = Date.now();
+      order.paymentResult = {
+        id: req.body.id,
+        status: req.body.status,
+        update_time: req.body.update_time,
+        email_address: req.body.payer.email_address,
+        currency: 'CAD',
+      };
+
+      const updatedOrder = await order.save();
+      res.status(200).json(updatedOrder);
+    } else {
+      res.status(404).json({ message: 'Order not found' });
+    }
+  } catch (error) {
+    console.error('Error updating order:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 module.exports = router;
