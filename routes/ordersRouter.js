@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   const orderList = await Order.find()
-    .populate('user', 'name email')
+    .populate('user', 'name email id')
     .sort({ dateOrdered: -1 });
   if (!orderList) {
     res.status(500).json({ success: false });
@@ -200,6 +200,27 @@ router.put('/:id/pay', async (req, res) => {
   } catch (error) {
     console.error('Error updating order:', error);
     res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+router.put('/:id/deliver', async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+      order.isDelivered = true;
+      order.deliveredAt = Date.now();
+
+      const updatedOrder = await order.save();
+      res.status(200).json(updatedOrder);
+    } else {
+      res.status(404).json({ message: 'Order not found' });
+    }
+  } catch (error) {
+    console.error('Error updating order to delivered:', error);
+    res.status(500).json({
+      message: 'Error updating order to delivered: Internal Server Error',
+    });
   }
 });
 

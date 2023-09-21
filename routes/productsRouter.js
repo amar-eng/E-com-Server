@@ -81,51 +81,73 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST A PRODUCT
+// POST A PRODUCT, without images
 
-router.post('/', uploadOptions.single('image'), async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const category = await Category.findById(req.body.category);
+    const categoryId = req.body.category || '6503b4ef5b403d35f00bb633';
+    const category = await Category.findById(categoryId);
     if (!category) return res.status(400).send('Invalid Category');
 
-    const file = req.file;
-    if (!file) return res.status(400).send('No Image in the request');
-
-    const fileName = req.file.filename;
-    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
-
     const product = new Product({
-      name: req.body.name,
-      description: req.body.description,
-      category: req.body.category,
-      image: `${basePath}${fileName}`,
-      countInStock: req.body.countInStock,
-      richDescription: req.body.richDescription,
-      images: req.body.images,
-      brand: req.body.brand,
-      price: req.body.price,
-      rating: req.body.rating,
-      numReviews: req.body.numReviews,
-      isFeatured: req.body.isFeatured,
-      gender: req.body.gender,
-      season: req.body.season,
-      concentration: req.body.concentration,
-      vibe: req.body.vibe,
-      topNotes: req.body.topNotes,
-      middleNotes: req.body.middleNotes,
-      baseNotes: req.body.baseNotes,
-      occasion: req.body.occasion,
+      name: req.body.name || 'Sample name',
+      description: req.body.description || 'Sample description',
+      category: categoryId,
+      image: req.body.image || '',
+      countInStock: req.body.countInStock || 0,
+      richDescription: req.body.richDescription || '',
+      images: req.body.images || [],
+      brand: req.body.brand || 'Sample brand',
+      price: req.body.price || 0,
+      rating: req.body.rating || 0,
+      numReviews: req.body.numReviews || 0,
+      isFeatured: req.body.isFeatured || false,
+      gender: req.body.gender || 'Sample gender',
+      season: req.body.season || 'Sample season',
+      concentration: req.body.concentration || 'Sample concentration',
+      vibe: req.body.vibe || 'Sample vibe',
+      topNotes: req.body.topNotes || ['Sample top note'],
+      middleNotes: req.body.middleNotes || ['Sample middle note'],
+      baseNotes: req.body.baseNotes || ['Sample base note'],
+      occasion: req.body.occasion || 'Sample occasion',
     });
 
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
   } catch (err) {
     res.status(500).json({
-      error: err,
+      error: err.message,
       success: false,
     });
   }
 });
+
+// Upload a single image
+router.post('/upload', uploadOptions.single('image'), async (req, res) => {
+  try {
+    const fileName = req.file.filename;
+    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+    const imageUrl = `${basePath}${fileName}`;
+    res.status(200).json({ image: imageUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// upload multiple images
+router.post(
+  '/upload-images',
+  uploadOptions.array('images'),
+  async (req, res) => {
+    try {
+      const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+      const imagesUrls = req.files.map((file) => `${basePath}${file.filename}`);
+      res.status(200).json({ images: imagesUrls });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
 
 // DELETE PRODUCT
 router.delete('/:id', async (req, res) => {
@@ -151,26 +173,41 @@ router.delete('/:id', async (req, res) => {
 });
 // EDIT PRODUCT
 
-router.put('/:id', async (req, res) => {
-  if (!mongoose.isValidObjectId(req.params.id)) {
-    return res.status(400).send('Invalid Product ID');
-  }
+router.put(
+  '/:id',
+  uploadOptions.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'images', maxCount: 5 },
+  ]),
+  async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(400).send('Invalid Product ID');
+    }
 
-  const category = await Category.findById(req.body.category);
-  if (!category) {
-    return res.status(400).send('Category not found');
-  }
+    const category = await Category.findById(req.body.category);
+    if (!category) {
+      return res.status(400).send('Category not found');
+    }
 
-  const product = await Product.findByIdAndUpdate(
-    req.params.id,
-    {
+    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+
+    // For main image
+    const fileName =
+      req.files && req.files.image ? req.files.image[0].filename : null;
+    const imagesPaths =
+      req.files && req.files.images
+        ? req.files.images.map((file) => `${basePath}${file.filename}`)
+        : [];
+    const imageUrl = fileName ? `${basePath}${fileName}` : '';
+
+    const productData = {
       name: req.body.name,
       description: req.body.description,
       category: req.body.category,
-      image: req.body.image,
+      image: imageUrl || req.body.image, // Use the new image if uploaded, otherwise keep the old one
       countInStock: req.body.countInStock,
       richDescription: req.body.richDescription,
-      images: req.body.images,
+      images: imagesPaths.length > 0 ? imagesPaths : req.body.images, // Use new gallery images if uploaded, otherwise keep the old ones
       brand: req.body.brand,
       price: req.body.price,
       rating: req.body.rating,
@@ -184,18 +221,23 @@ router.put('/:id', async (req, res) => {
       middleNotes: req.body.middleNotes,
       baseNotes: req.body.baseNotes,
       occasion: req.body.occasion,
-    },
-    { new: true }
-  );
+    };
 
-  if (!product) {
-    return res
-      .status(404)
-      .send('The product cannot be updated or was not found');
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      productData,
+      { new: true }
+    );
+
+    if (!product) {
+      return res
+        .status(404)
+        .send('The product cannot be updated or was not found');
+    }
+
+    res.send(product);
   }
-
-  res.send(product);
-});
+);
 
 // Product Counts (useful for Admin)
 router.get('/get/count', async (req, res) => {
@@ -250,40 +292,40 @@ router.get(`/get/featured/:count`, async (req, res) => {
   }
 });
 
-router.put(
-  '/gallery/:id',
-  uploadOptions.array('images', 10),
-  async (req, res) => {
-    try {
-      if (!mongoose.isValidObjectId(req.params.id)) {
-        return res.status(400).send('Invalid Product Id');
-      }
+// router.put(
+//   '/gallery/:id',
+//   uploadOptions.array('images', 10),
+//   async (req, res) => {
+//     try {
+//       if (!mongoose.isValidObjectId(req.params.id)) {
+//         return res.status(400).send('Invalid Product Id');
+//       }
 
-      const files = req.files;
-      const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+//       const files = req.files;
+//       const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
 
-      const imagesPaths = files.map((file) => `${basePath}${file.filename}`);
+//       const imagesPaths = files.map((file) => `${basePath}${file.filename}`);
 
-      const product = await Product.findByIdAndUpdate(
-        req.params.id,
-        {
-          images: imagesPaths,
-        },
-        { new: true }
-      );
+//       const product = await Product.findByIdAndUpdate(
+//         req.params.id,
+//         {
+//           images: imagesPaths,
+//         },
+//         { new: true }
+//       );
 
-      if (!product) {
-        return res.status(500).send('The gallery cannot be updated!');
-      }
+//       if (!product) {
+//         return res.status(500).send('The gallery cannot be updated!');
+//       }
 
-      res.send(product);
-    } catch (err) {
-      res.status(500).json({
-        error: err.message,
-        success: false,
-      });
-    }
-  }
-);
+//       res.send(product);
+//     } catch (err) {
+//       res.status(500).json({
+//         error: err.message,
+//         success: false,
+//       });
+//     }
+//   }
+// );
 
 module.exports = router;
