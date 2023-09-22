@@ -5,7 +5,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const verifyToken = require('../middleware/auth');
-const asyncHandler = require('../middleware/asyncHandler');
 
 router.use(cookieParser());
 
@@ -200,25 +199,61 @@ router.get('/:id', verifyToken, async (req, res) => {
 });
 
 // Delete a user (admin access required)
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const user = await User.findByIdAndRemove(req.params.id);
-    if (user) {
-      res.status(200).json({
-        success: true,
-        message: 'User is deleted',
-      });
-    } else {
+    if (!user) {
       res.status(404).json({
         success: false,
         message: 'User not found',
       });
+      return;
     }
+
+    if (user.isAdmin) {
+      res.status(403).json({
+        success: false,
+        message: 'Admin User cant be deleted',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'User is deleted',
+    });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       error: err.message,
     });
+  }
+});
+
+// Update user by ID (admin access required)
+router.put('/:id', verifyToken, async (req, res) => {
+  try {
+    // Check if the authenticated user is an admin
+    const currentUser = await User.findById(req.user.userId);
+    if (!currentUser || !currentUser.isAdmin) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+
+    const updatedUserData = req.body;
+    console.log(updatedUserData);
+
+    const user = await User.findByIdAndUpdate(req.params.id, updatedUserData, {
+      new: true,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json(error);
   }
 });
 
