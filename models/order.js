@@ -4,9 +4,15 @@ const orderSchema = mongoose.Schema(
   {
     orderItems: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'OrderItem',
-        required: true,
+        qty: {
+          type: Number,
+          required: true,
+        },
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Product',
+          required: true,
+        },
       },
     ],
     shippingAddress1: {

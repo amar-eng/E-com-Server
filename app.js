@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 require('dotenv/config');
 
@@ -18,15 +19,14 @@ const PRODUCTS_ROUTER = require('./routes/productsRouter');
 const USER_ROUTER = require('./routes/usersRouter');
 const ORDER_ROUTER = require('./routes/ordersRouter');
 const CATEGORY_ROUTER = require('./routes/categoryRouter');
-const authJwt = require('./helpers/jwt');
 const errorHandler = require('./helpers/error-handler');
 
 // MiddleWare
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
-app.use(authJwt());
 app.use('/public/uploads', express.static(__dirname + '/public/uploads'));
 app.use(errorHandler); // Use errorHandler middleware
+app.use(cookieParser());
 
 // ROUTERS
 app.use(`${api}/products`, PRODUCTS_ROUTER);
