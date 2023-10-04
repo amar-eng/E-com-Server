@@ -98,12 +98,12 @@ const createProduct = asyncHandler(async (req, res) => {
     isFeatured: req.body.isFeatured || false,
     gender: req.body.gender || 'Sample gender',
     season: req.body.season || 'Sample season',
-    concentration: req.body.concentration || 'Sample concentration',
+    concentration: req.body.concentration || 'Eau De Parfum',
     vibe: req.body.vibe || 'Sample vibe',
     topNotes: req.body.topNotes || ['Sample top note'],
     middleNotes: req.body.middleNotes || ['Sample middle note'],
     baseNotes: req.body.baseNotes || ['Sample base note'],
-    occasion: req.body.occasion || 'Sample occasion',
+    occasion: req.body.occasion || 'Night-out',
   });
 
   const createdProduct = await product.save();
