@@ -120,6 +120,10 @@ const productSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  longevity: {
+    type: Number,
+    required: true,
+  },
 });
 
 productSchema.virtual('id').get(function () {

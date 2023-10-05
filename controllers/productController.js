@@ -104,6 +104,7 @@ const createProduct = asyncHandler(async (req, res) => {
     middleNotes: req.body.middleNotes || ['Sample middle note'],
     baseNotes: req.body.baseNotes || ['Sample base note'],
     occasion: req.body.occasion || 'Night-out',
+    longevity: req.body.longevity || 1,
   });
 
   const createdProduct = await product.save();
@@ -181,6 +182,7 @@ const updateProduct = async (req, res) => {
       middleNotes: req.body.middleNotes,
       baseNotes: req.body.baseNotes,
       occasion: req.body.occasion,
+      longevity: req.body.longevity,
     };
 
     const product = await Product.findByIdAndUpdate(
