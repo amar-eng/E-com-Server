@@ -122,7 +122,6 @@ const productSchema = mongoose.Schema({
   },
   longevity: {
     type: Number,
-    required: true,
   },
 });
 

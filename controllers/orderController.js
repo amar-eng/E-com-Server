@@ -99,7 +99,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     res.send(order);
   } catch (error) {
     console.error('Error creating order:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send(error);
   }
 });
 
