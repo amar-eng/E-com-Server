@@ -124,7 +124,7 @@ const uploadSingleImage = async (req, res) => {
     const imageUrl = `${basePath}${fileName}`;
     res.status(200).json({ image: imageUrl });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, stack: err.stack });
   }
 };
 
