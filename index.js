@@ -8,6 +8,15 @@ const cookieParser = require('cookie-parser');
 
 require('dotenv/config');
 
+const corsOptions = {
+  origin: ['http://localhost:3000', 'https://your-frontend-domain.com'], // Add your frontend domain here
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+
 app.use(cors());
 app.options('*', cors());
 
