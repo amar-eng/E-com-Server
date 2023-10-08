@@ -13,6 +13,7 @@ app.options('*', cors());
 
 const api = process.env.API_URL;
 const CONNECTION_STRING = process.env.CONNECTION_STRING;
+const BASE_URL = process.env.BASE_URL; // <-- Added this line
 
 // IMPORT ROUTERS
 const PRODUCTS_ROUTER = require('./routes/productsRouter');
@@ -53,5 +54,5 @@ mongoose
 
 const SERVER_PORT = 5001;
 app.listen(SERVER_PORT, () => {
-  console.log(`Server started on http://localhost:${SERVER_PORT}`);
+  console.log(`Server started on ${BASE_URL}:${SERVER_PORT}`); // <-- Modified this line
 });

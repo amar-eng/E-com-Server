@@ -9,6 +9,8 @@ const FILE_TYPE_MAP = {
   'image/jpg': 'jpg',
 };
 
+const BASE_URL = process.env.BASE_URL;
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const isValid = FILE_TYPE_MAP[file.mimetype];
@@ -118,7 +120,7 @@ const createProduct = asyncHandler(async (req, res) => {
 const uploadSingleImage = async (req, res) => {
   try {
     const fileName = req.file.filename;
-    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+    const basePath = `${BASE_URL}/public/uploads/`;
     const imageUrl = `${basePath}${fileName}`;
     res.status(200).json({ image: imageUrl });
   } catch (err) {
@@ -132,7 +134,7 @@ const uploadSingleImage = async (req, res) => {
 
 const uploadMultipleImages = async (req, res) => {
   try {
-    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+    const basePath = `${BASE_URL}/public/uploads/`;
     const imagesUrls = req.files.map((file) => `${basePath}${file.filename}`);
     res.status(200).json({ images: imagesUrls });
   } catch (err) {
@@ -150,7 +152,7 @@ const updateProduct = async (req, res) => {
       return res.status(400).send('Invalid Product ID');
     }
 
-    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+    const basePath = `${BASE_URL}/public/uploads/`;
 
     // For main image
     const fileName =
