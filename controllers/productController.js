@@ -127,7 +127,7 @@ const uploadSingleImage = async (req, res) => {
     // Now, result.Location contains the S3 URL of the uploaded file.
     res.status(200).json({ image: result.Location });
   } catch (err) {
-    res.status(500).json({ error: err.message, stack: err.stack });
+    res.status(500).json({ error: err, stack: err.stack });
   }
 };
 
