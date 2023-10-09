@@ -6,10 +6,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-require('dotenv/config');
+require('dotenv').config();
 
 const corsOptions = {
-  origin: ['http://localhost:3000', 'https://your-frontend-domain.com'],
+  origin: ['http://localhost:3000', 'https://e-com-server-jt2k.vercel.app'], // Include your frontend domain
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
@@ -20,7 +20,7 @@ app.options('*', cors(corsOptions));
 
 const api = process.env.API_URL;
 const CONNECTION_STRING = process.env.CONNECTION_STRING;
-const BASE_URL = process.env.BASE_URL; // <-- Added this line
+const BASE_URL = process.env.BASE_URL;
 
 // IMPORT ROUTERS
 const PRODUCTS_ROUTER = require('./routes/productsRouter');
@@ -32,7 +32,7 @@ const errorHandler = require('./helpers/error-handler');
 // MiddleWare
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
-app.use(errorHandler); // Use errorHandler middleware
+app.use(errorHandler);
 app.use(cookieParser());
 
 // ROUTERS
@@ -41,11 +41,11 @@ app.use(`${api}/users`, USER_ROUTER);
 app.use(`${api}/orders`, ORDER_ROUTER);
 app.use(`${api}/categories`, CATEGORY_ROUTER);
 
-app.get(`${api}/config/paypal`, (req, res) =>
+app.get(`${api}/config/paypal`, (req, res) => {
   res.send({
     clientId: process.env.PAYPAL_CLIENT_ID,
-  })
-);
+  });
+});
 
 mongoose
   .connect(CONNECTION_STRING, {
@@ -60,5 +60,5 @@ mongoose
 
 const SERVER_PORT = 5001;
 app.listen(SERVER_PORT, () => {
-  console.log(`Server started on ${BASE_URL}:${SERVER_PORT}`); // <-- Modified this line
+  console.log(`Server started on ${BASE_URL}:${SERVER_PORT}`);
 });
