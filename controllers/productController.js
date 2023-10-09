@@ -121,11 +121,10 @@ const createProduct = asyncHandler(async (req, res) => {
 const uploadSingleImage = async (req, res) => {
   try {
     const file = req.file;
-
     const result = await uploadFile(file);
-    console.log(result);
-    // Now, result.Location contains the S3 URL of the uploaded file.
-    res.status(200).json({ image: result.Location });
+    res
+      .status(200)
+      .json({ image: result.Location, imagePath: `/images/${result.Key}` });
   } catch (err) {
     res.status(500).json({ error: err, stack: err.stack });
   }
@@ -138,17 +137,19 @@ const uploadSingleImage = async (req, res) => {
 const uploadMultipleImages = async (req, res) => {
   try {
     const files = req.files;
-
     const uploadPromises = files.map((file) => uploadFile(file));
     const results = await Promise.all(uploadPromises);
-
-    // Now, results is an array of objects where each object's Location property contains the S3 URL of an uploaded file.
     const imageUrls = results.map((result) => result.Location);
-
     res.status(200).json({ images: imageUrls });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
+};
+
+const getImage = async (req, res) => {
+  const key = req.params.key;
+  const readStream = getFileStream(key);
+  readStream.pipe(res);
 };
 
 // @desc    UPDATE A Producy
@@ -324,4 +325,5 @@ module.exports = {
   getProductsCount,
   getFeaturedProducts,
   createProductReview,
+  getImage,
 };
