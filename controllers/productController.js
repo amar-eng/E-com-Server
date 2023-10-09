@@ -161,8 +161,6 @@ const updateProduct = async (req, res) => {
       return res.status(400).send('Invalid Product ID');
     }
 
-    const basePath = `${BASE_URL}/public/uploads/`;
-
     // For main image
     const imageUrl = req.body.image;
 
