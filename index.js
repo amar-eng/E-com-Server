@@ -9,16 +9,14 @@ const cookieParser = require('cookie-parser');
 require('dotenv/config');
 
 const corsOptions = {
-  origin: ['http://localhost:3000', 'https://your-frontend-domain.com'], // Add your frontend domain here
+  origin: ['http://localhost:3000', 'https://your-frontend-domain.com'],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
-
-app.use(cors());
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 
 const api = process.env.API_URL;
 const CONNECTION_STRING = process.env.CONNECTION_STRING;
@@ -34,7 +32,6 @@ const errorHandler = require('./helpers/error-handler');
 // MiddleWare
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
-// app.use('/public/uploads', express.static(__dirname + '/public/uploads'));
 app.use(errorHandler); // Use errorHandler middleware
 app.use(cookieParser());
 
