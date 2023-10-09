@@ -2,6 +2,7 @@ const { asyncHandler } = require('../helpers/jwt');
 const { Product } = require('../models/product');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const { uploadFile } = require('../s3');
 
 const FILE_TYPE_MAP = {
   'image/png': 'png',
@@ -119,10 +120,12 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const uploadSingleImage = async (req, res) => {
   try {
-    const fileName = req.file.filename;
-    const basePath = `${BASE_URL}/public/uploads/`;
-    const imageUrl = `${basePath}${fileName}`;
-    res.status(200).json({ image: imageUrl });
+    const file = req.file;
+
+    const result = await uploadFile(file);
+
+    // Now, result.Location contains the S3 URL of the uploaded file.
+    res.status(200).json({ image: result.Location });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
@@ -134,11 +137,17 @@ const uploadSingleImage = async (req, res) => {
 
 const uploadMultipleImages = async (req, res) => {
   try {
-    const basePath = `${BASE_URL}/public/uploads/`;
-    const imagesUrls = req.files.map((file) => `${basePath}${file.filename}`);
-    res.status(200).json({ images: imagesUrls });
+    const files = req.files;
+
+    const uploadPromises = files.map((file) => uploadFile(file));
+    const results = await Promise.all(uploadPromises);
+
+    // Now, results is an array of objects where each object's Location property contains the S3 URL of an uploaded file.
+    const imageUrls = results.map((result) => result.Location);
+
+    res.status(200).json({ images: imageUrls });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, stack: err.stack });
   }
 };
 
@@ -155,13 +164,10 @@ const updateProduct = async (req, res) => {
     const basePath = `${BASE_URL}/public/uploads/`;
 
     // For main image
-    const fileName =
-      req.files && req.files.image ? req.files.image[0].filename : null;
-    const imagesPaths =
-      req.files && req.files.images
-        ? req.files.images.map((file) => `${basePath}${file.filename}`)
-        : [];
-    const imageUrl = fileName ? `${basePath}${fileName}` : '';
+    const imageUrl = req.body.image;
+
+    // For additional images
+    const imagesPaths = req.body.images || [];
 
     const productData = {
       name: req.body.name,

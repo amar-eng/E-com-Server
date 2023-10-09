@@ -34,7 +34,7 @@ const errorHandler = require('./helpers/error-handler');
 // MiddleWare
 app.use(bodyParser.json());
 app.use(morgan('tiny'));
-app.use('/public/uploads', express.static(__dirname + '/public/uploads'));
+// app.use('/public/uploads', express.static(__dirname + '/public/uploads'));
 app.use(errorHandler); // Use errorHandler middleware
 app.use(cookieParser());
 
