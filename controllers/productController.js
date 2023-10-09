@@ -123,7 +123,7 @@ const uploadSingleImage = async (req, res) => {
     const file = req.file;
 
     const result = await uploadFile(file);
-
+    console.log(result);
     // Now, result.Location contains the S3 URL of the uploaded file.
     res.status(200).json({ image: result.Location });
   } catch (err) {
