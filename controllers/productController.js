@@ -10,8 +10,6 @@ const FILE_TYPE_MAP = {
   'image/jpg': 'jpg',
 };
 
-const BASE_URL = process.env.BASE_URL;
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const isValid = FILE_TYPE_MAP[file.mimetype];
@@ -122,6 +120,7 @@ const uploadSingleImage = async (req, res) => {
   try {
     const file = req.file;
     const result = await uploadFile(file);
+    console.log(result);
     res
       .status(200)
       .json({ image: result.Location, imagePath: `/images/${result.Key}` });
@@ -144,12 +143,6 @@ const uploadMultipleImages = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }
-};
-
-const getImage = async (req, res) => {
-  const key = req.params.key;
-  const readStream = getFileStream(key);
-  readStream.pipe(res);
 };
 
 // @desc    UPDATE A Producy
@@ -325,5 +318,4 @@ module.exports = {
   getProductsCount,
   getFeaturedProducts,
   createProductReview,
-  getImage,
 };

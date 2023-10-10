@@ -13,7 +13,6 @@ const {
   getProductsCount,
   getFeaturedProducts,
   createProductReview,
-  getImage,
 } = require('../controllers/productController');
 
 // GET PRODUCTS
@@ -42,6 +41,5 @@ router.post(
   uploadOptions.array('images'),
   uploadMultipleImages
 );
-router.get('/images/:key', getImage);
 
 module.exports = router;
