@@ -12,7 +12,7 @@ const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:3001',
-    'http://localhost:3002',
+    'https://al-misk.vercel.app/',
     'https://e-com-server-jt2k.vercel.app',
   ], // Include your frontend domain
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
