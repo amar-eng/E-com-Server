@@ -14,7 +14,7 @@ const corsOptions = {
     'http://localhost:3001',
     'https://al-misk.vercel.app/',
     'https://e-com-server-jt2k.vercel.app',
-  ], // Include your frontend domain
+  ],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
