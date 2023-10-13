@@ -306,6 +306,42 @@ const createProductReview = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
 });
+
+// @desc    Like a product
+// @route   POST /api/products/:id/like
+// @access  Private
+const likeProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+
+  if (product) {
+    // Check if product is already liked by the user
+    const alreadyLiked = product.likes.includes(req.user._id);
+
+    if (alreadyLiked) {
+      product.likes = product.likes.filter(
+        (userId) => userId.toString() !== req.user._id.toString()
+      );
+    } else {
+      product.likes.push(req.user._id);
+    }
+
+    await product.save();
+
+    res.json(product);
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+});
+
+// @desc    Get liked products for a user
+// @route   GET /api/users/:id/liked-products
+// @access  Private
+const getLikedProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({ likes: req.user._id });
+  res.json(products);
+});
+
 module.exports = {
   getProducts,
   getProductById,
@@ -318,4 +354,6 @@ module.exports = {
   getProductsCount,
   getFeaturedProducts,
   createProductReview,
+  likeProduct,
+  getLikedProducts,
 };

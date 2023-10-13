@@ -123,6 +123,13 @@ const productSchema = mongoose.Schema({
   longevity: {
     type: Number,
   },
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: [],
+    },
+  ],
 });
 
 productSchema.virtual('id').get(function () {

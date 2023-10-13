@@ -13,6 +13,8 @@ const {
   getProductsCount,
   getFeaturedProducts,
   createProductReview,
+  likeProduct,
+  getLikedProducts,
 } = require('../controllers/productController');
 
 // GET PRODUCTS
@@ -21,6 +23,8 @@ router.route('/').get(getProducts).post(protect, admin, createProduct);
 router.route('/count').get(protect, admin, getProductsCount);
 router.route('/featured').get(protect, admin, getFeaturedProducts);
 router.route('/:id/reviews').post(protect, createProductReview);
+router.post('/:id/like', protect, likeProduct);
+router.get('/users/:id/liked-products', protect, getLikedProducts);
 router
   .route('/:id')
   .get(getProductById)
