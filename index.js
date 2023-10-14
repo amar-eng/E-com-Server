@@ -14,6 +14,7 @@ const corsOptions = {
     'http://localhost:3001',
     'https://al-misk.vercel.app/',
     'https://e-com-server-jt2k.vercel.app',
+    'https://e-com-client-eight.vercel.app/',
   ],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
