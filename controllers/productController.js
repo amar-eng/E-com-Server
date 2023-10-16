@@ -38,7 +38,7 @@ const getProducts = asyncHandler(async (req, res) => {
     filter.category = { $in: req.query.categories.split(',') };
   }
 
-  const pageSize = 10;
+  const pageSize = 30;
   const page = Number(req.query.pageNumber || 1);
 
   const keyword = req.query.keyword
