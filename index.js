@@ -34,6 +34,7 @@ const PRODUCTS_ROUTER = require('./routes/productsRouter');
 const USER_ROUTER = require('./routes/usersRouter');
 const ORDER_ROUTER = require('./routes/ordersRouter');
 const CATEGORY_ROUTER = require('./routes/categoryRouter');
+const STRIPE_ROUTER = require('./routes/stripeRouter');
 const errorHandler = require('./helpers/error-handler');
 
 // MiddleWare
@@ -47,6 +48,7 @@ app.use(`${api}/products`, PRODUCTS_ROUTER);
 app.use(`${api}/users`, USER_ROUTER);
 app.use(`${api}/orders`, ORDER_ROUTER);
 app.use(`${api}/categories`, CATEGORY_ROUTER);
+app.use(`${api}/stripe-checkout`, STRIPE_ROUTER);
 
 app.get(`${api}/config/paypal`, (req, res) => {
   res.send({
